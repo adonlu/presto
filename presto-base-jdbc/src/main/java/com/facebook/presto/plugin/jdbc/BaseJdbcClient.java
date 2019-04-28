@@ -197,8 +197,12 @@ public class BaseJdbcClient
             try (ResultSet resultSet = getColumns(tableHandle, connection.getMetaData())) {
                 List<JdbcColumnHandle> columns = new ArrayList<>();
                 while (resultSet.next()) {
+                /** when column type is timestamp，getTimestamp('0000-00-00 00:00:00') will throw exception,
+                    so cast timestamp as string;
+                */
+                    int type=resultSet.getInt("DATA_TYPE");
                     JdbcTypeHandle typeHandle = new JdbcTypeHandle(
-                            resultSet.getInt("DATA_TYPE"),
+                            type==93?12:type,
                             resultSet.getInt("COLUMN_SIZE"),
                             resultSet.getInt("DECIMAL_DIGITS"));
                     Optional<ReadMapping> columnMapping = toPrestoType(session, typeHandle);
